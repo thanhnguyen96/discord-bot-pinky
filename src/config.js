@@ -5,7 +5,7 @@ module.exports = {
     CLIENT_ID: process.env.CLIENT_ID,
     GUILD_ID: process.env.GUILD_ID, // Optional: Your Server ID for testing slash commands quickly
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-    MAX_HISTORY_MESSAGES: 20, // Number of past messages to fetch for context
+    MAX_HISTORY_MESSAGES: -1, // Set to -1 to keep all chat histories
 };
 
 // Validate essential keys

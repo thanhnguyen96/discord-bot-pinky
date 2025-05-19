@@ -30,11 +30,14 @@ async function addChatMessage(channelId, userId, messageContent, discordMessageI
 }
 
 async function getChatHistory(channelId, limit) {
-    return prisma.chatHistories.findMany({
+    const queryOptions = {
         where: { channelId: channelId },
         orderBy: { createdAt: 'asc' },
-        take: limit,
-    });
+    };
+    if (limit !== -1) { // Only apply 'take' if limit is not -1
+        queryOptions.take = limit;
+    }
+    return prisma.chatHistories.findMany(queryOptions);
 }
 
 async function clearChatHistory(channelId) {
