@@ -4,8 +4,26 @@ const geminiService = require('../geminiService'); // For resetChatSession
 const prisma = require('../prismaClient'); // For direct prisma access if needed
 
 async function handleToggleChatbot(interaction, sharedStates) {
-    sharedStates.enabledChatBot = !sharedStates.enabledChatBot;
-    await interaction.reply(`Chatbot is now ${sharedStates.enabledChatBot ? "ENABLED" : "DISABLED"}.`);
+    const channelId = interaction.channelId;
+    let isNowChatbotEnabled;
+
+    if (!sharedStates.chatbotEnabledChannels.has(channelId)) {
+        sharedStates.chatbotEnabledChannels.add(channelId);
+        isNowChatbotEnabled = true;
+    } else {
+        sharedStates.chatbotEnabledChannels.delete(channelId);
+        isNowChatbotEnabled = false;
+    }
+    try {
+        const currentDbSettings = await prisma.channelSettings.findUnique({ where: { channelId } });
+        const newSettings = { ...(currentDbSettings?.settings || {}), isChatbotEnabled: isNowChatbotEnabled };
+
+        await databaseService.upsertChannelSetting(channelId, newSettings);
+        await interaction.reply(`Chatbot is now ${isNowChatbotEnabled ? "ENABLED" : "DISABLED"} for this channel. Settings saved.`);
+    } catch (dbError) {
+        console.error("Error saving chatbot_enabled setting to DB:", dbError);
+        await interaction.reply(`Chatbot is now ${isNowChatbotEnabled ? "ENABLED" : "DISABLED"} for this channel. (Failed to save setting to DB)`);
+    }
 }
 
 async function handleToggleFreeChat(interaction, sharedStates) {

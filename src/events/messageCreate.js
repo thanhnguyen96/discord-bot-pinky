@@ -5,11 +5,11 @@ module.exports = {
     name: 'messageCreate',
     async execute(message, client, sharedStates) { // sharedStates for enabledChatBot, freeChatChannels
         if (message.author.bot) return;
-
+        const isChatbotEnabledInChannel = sharedStates.chatbotEnabledChannels.has(message.channelId);
         const isFreeChatChannel = sharedStates.freeChatChannels.has(message.channelId);
         const isMentioned = message.mentions.users.has(client.user.id);
 
-        if (sharedStates.enabledChatBot && (isFreeChatChannel || isMentioned)) {
+        if (isChatbotEnabledInChannel && (isFreeChatChannel || isMentioned)) {
             let prompt = message.content;
             if (isMentioned && !isFreeChatChannel) {
                 prompt = message.content.replace(new RegExp(`<@!?${client.user.id}>`, 'g'), '').trim();

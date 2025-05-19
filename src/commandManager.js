@@ -4,7 +4,7 @@ const config = require('./config');
 const commands = [
     {
         name: "toggle_chatbot",
-        description: "Toggle the chatbot (on mention/free_chat) on or off.",
+        description: "Toggle the chatbot for the current channel (responds on mention or if free_chat is also on).",
     },
     {
         name: "reset_chat",

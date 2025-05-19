@@ -7,7 +7,7 @@ const config = require('./src/config'); // Loads .env and validates
 
 // Shared states that can be modified by commands and used by event handlers
 const sharedStates = {
-    enabledChatBot: true,
+    chatbotEnabledChannels: new Set(),
     freeChatChannels: new Set(),
 };
 
