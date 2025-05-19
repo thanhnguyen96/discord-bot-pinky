@@ -1,0 +1,31 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model chatHistories {
+  id        Int      @id @default(autoincrement())
+  discordMessageId String   // Discord's message ID
+  channelId String
+  userId    String
+  message   String
+  createdAt DateTime
+
+  @@unique([channelId, discordMessageId])
+  @@index([channelId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model channelSettings {
+  channelId String @id @unique // Discord Channel ID as primary key
+  settings  Json   // JSONB column to store various settings
+  updatedAt DateTime @updatedAt // Automatically tracks when settings were last updated
+}
