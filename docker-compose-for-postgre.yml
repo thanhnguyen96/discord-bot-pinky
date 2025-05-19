@@ -1,0 +1,40 @@
+# Specifies the version of the Docker Compose file format.
+# Version '3.8' is a widely used and stable version.
+version: '3.8'
+
+# Defines the services (containers) that make up your application.
+services:
+  # Defines a service named 'postgres'. You can name it anything you like.
+  postgres:
+    # Specifies the Docker image to use. In this case, the official PostgreSQL image.
+    # You can append a tag for a specific version, e.g., postgres:15
+    image: postgres
+    # Sets a custom name for the container created by this service.
+    container_name: pinky-postgres
+    # Sets environment variables within the container.
+    # These are used by the PostgreSQL image to initialize the database.
+    environment:
+      POSTGRES_USER: pinky          # Sets the superuser name.
+      POSTGRES_PASSWORD: pinky      # Sets the superuser password.
+      POSTGRES_DB: pinky            # Sets the default database name.
+                                    # Note: Using 'pinky' for user, password, and DB name is
+                                    # for demonstration. For production, use strong, unique credentials.
+    # Maps ports between the host machine and the container.
+    # Format: "HOST_PORT:CONTAINER_PORT"
+    # This maps port 5435 on your host to port 5432 (default PostgreSQL port) inside the container.
+    ports:
+      - "5435:5432"
+    # Defines volumes for data persistence.
+    # This ensures that your database data is saved even if the container is removed or recreated.
+    volumes:
+      # Mounts a named volume 'postgres_data' to the directory where PostgreSQL stores its data.
+      - postgres_data:/var/lib/postgresql/data
+    # Configures the restart policy for the container.
+    # 'always' ensures that the container will restart automatically if it stops or if Docker restarts.
+    restart: always
+
+# Defines named volumes that can be used by services.
+volumes:
+  # Declares the named volume 'postgres_data'.
+  # Docker manages this volume, and it will persist data across container restarts and removals.
+  postgres_data:
