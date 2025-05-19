@@ -5,7 +5,7 @@ const prisma = require('../prismaClient'); // For direct prisma access if needed
 
 async function handleToggleChatbot(interaction, sharedStates) {
     sharedStates.enabledChatBot = !sharedStates.enabledChatBot;
-    await interaction.reply(`Gemini chatbot is now ${sharedStates.enabledChatBot ? "ENABLED" : "DISABLED"}.`);
+    await interaction.reply(`Chatbot is now ${sharedStates.enabledChatBot ? "ENABLED" : "DISABLED"}.`);
 }
 
 async function handleToggleFreeChat(interaction, sharedStates) {
@@ -36,7 +36,7 @@ async function handleResetChat(interaction) {
     geminiService.resetChatSession(interaction.channelId);
     await databaseService.clearChatHistory(interaction.channelId);
     console.log(`[${interaction.channelId}] Cleared DB history and active session on reset command.`);
-    await interaction.reply({ content: "Chat session with Gemini for this channel has been reset, and all associated chat history from the database for this channel has been cleared.", ephemeral: true });
+    await interaction.reply({ content: "Chat session for this channel has been reset, and all associated chat history from the database for this channel has been cleared.", ephemeral: true });
 }
 
 async function handleClear(interaction) {

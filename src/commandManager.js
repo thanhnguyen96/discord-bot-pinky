@@ -4,11 +4,11 @@ const config = require('./config');
 const commands = [
     {
         name: "toggle_chatbot",
-        description: "Toggle the Gemini chatbot (on mention/free_chat) on or off.",
+        description: "Toggle the chatbot (on mention/free_chat) on or off.",
     },
     {
         name: "reset_chat",
-        description: "Resets the Gemini chatbot's conversation history for this channel.",
+        description: "Resets the chatbot's conversation history for this channel.",
     },
     {
         name: "toggle_free_chat",

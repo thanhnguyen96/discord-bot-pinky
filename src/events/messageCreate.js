@@ -29,7 +29,7 @@ module.exports = {
                 await databaseService.addChatMessage(message.channel.id, message.author.id, prompt, message.id, message.createdAt);
                 await message.channel.sendTyping();
 
-                const geminiFormattedPrompt = `${message.author.id}|${message.author.username}|${prompt}`;
+                const geminiFormattedPrompt = `${message.author.id}|${prompt}`;
                 const geminiResponse = await geminiService.getGeminiChatResponse(message.channel.id, geminiFormattedPrompt, message.author.id, client.user.id);
 
                 if (geminiResponse) {

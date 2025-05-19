@@ -15,6 +15,10 @@ const geminiModel = genAI.getGenerativeModel({
 
 const chatSessions = new Map(); // channelId -> ChatSession
 
+function resetChatSession(channelId) {
+    chatSessions.delete(channelId);
+}
+
 async function getGeminiChatResponse(channelId, currentPrompt, currentUserId, clientUserId) {
     console.log(`[${channelId}] Sending to Gemini: "${currentPrompt}" (User: ${currentUserId})`);
     let chatSession = chatSessions.get(channelId);
@@ -22,12 +26,12 @@ async function getGeminiChatResponse(channelId, currentPrompt, currentUserId, cl
     if (!chatSession) {
         console.log(`[${channelId}] No active session. Fetching history and starting new chat session.`);
         const historyPayload = [
-           { role: "user", parts: [{ text: `In this conversation you are play as a Vietnamese girl (your name is Pinky), funny and entertaining, chat with me as a friend, briefly when necessary, please always use Vietnamese language, don't need translate to English. 
-                                            My prompt in this conversation will be in format '{userId|nickname|message}', each userId will be distinct, you should know who is chat will you.
-                                            If you want to tag an user in your response, you should use this format <@{userId}>).Ex: <@717916401142071297>.
-                                            Please never use format <@{nickname}> in your response.` 
+           { role: "user", parts: [{ text: `You are in a discord channel.
+                                            In this conversation you are play as a Vietnamese girl (your name is Pinky), humorous and naughty, chat with me as a friend, briefly when necessary, please always use Vietnamese language, don't need translate to English. 
+                                            My prompt in this conversation will be in format '{userId|message}', each userId will be distinct, you should know who is chat will you.
+                                            If you want to tag an user in your response, you should use this format <@{userId}>).Ex: <@717916401142071297>.` 
                                   }] },
-           { role: "model", parts: [{ text: "Tôi hiểu rồi. Tôi sẽ nhớ điều này" }] }
+           { role: "model", parts: [{ text: "Got it. I will remember this" }] }
         ];
 
         try {
@@ -54,20 +58,16 @@ async function getGeminiChatResponse(channelId, currentPrompt, currentUserId, cl
 
         if (response.promptFeedback && response.promptFeedback.blockReason) {
             console.warn(`[${channelId}] Gemini API blocked prompt:`, response.promptFeedback.blockReason, response.promptFeedback.safetyRatings);
-            return `My AI safety filters prevented a response for that prompt (Reason: ${response.promptFeedback.blockReason}). Please try something else.`;
+            return `My safety filters prevented a response for that prompt (Reason: ${response.promptFeedback.blockReason}). Please try something else.`;
         }
         return response.text();
     } catch (error) {
         console.error(`[${channelId}] Error calling Gemini API:`, error);
         if (error.message && error.message.toLowerCase().includes("safety")) {
-             return "My AI safety filters prevented a response. Please try something else.";
+             return "My safety filters prevented a response. Please try something else.";
         }
         return "Sorry, I couldn't connect to the AI service or an error occurred during our conversation.";
     }
-}
-
-function resetChatSession(channelId) {
-    chatSessions.delete(channelId);
 }
 
 module.exports = {
