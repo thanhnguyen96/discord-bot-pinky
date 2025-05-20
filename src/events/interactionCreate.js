@@ -3,6 +3,40 @@ const databaseService = require('../databaseService');
 const geminiService = require('../geminiService'); // For resetChatSession
 const prisma = require('../prismaClient'); // For direct prisma access if needed
 
+const MAX_FETCH_LIMIT = 100;
+
+module.exports = {
+    name: 'interactionCreate',
+    async execute(interaction, client, sharedStates) { // sharedStates for enabledChatBot, freeChatChannels
+        if (!interaction.isChatInputCommand()) return;
+
+        const { commandName } = interaction;
+        // The 'client' parameter is passed from index.js but interaction.client can also be used.
+        // For consistency, we can pass it to handlers if they need it, or they can use interaction.client.
+
+        switch (commandName) {
+            case "toggle_chatbot":
+                await handleToggleChatbot(interaction, sharedStates);
+                break;
+            case "toggle_free_chat":
+                await handleToggleFreeChat(interaction, sharedStates);
+                break;
+            case "reset_chat":
+                await handleResetChat(interaction);
+                break;
+            case "remember":
+                await handleRemember(interaction);
+                break;
+            case "clear":
+                await handleClear(interaction);
+                break;
+            default:
+                console.log(`[interactionCreate] Unhandled command: ${commandName}`);
+                await interaction.reply({ content: "Sorry, I don't know how to handle that command.", ephemeral: true });
+        }
+    },
+};
+
 async function handleToggleChatbot(interaction, sharedStates) {
     const channelId = interaction.channelId;
     let isNowChatbotEnabled;
@@ -84,31 +118,57 @@ async function handleClear(interaction) {
     }
 }
 
-module.exports = {
-    name: 'interactionCreate',
-    async execute(interaction, client, sharedStates) { // sharedStates for enabledChatBot, freeChatChannels
-        if (!interaction.isChatInputCommand()) return;
+async function handleRemember(interaction) {
+    await interaction.deferReply({ ephemeral: true });
 
-        const { commandName } = interaction;
-        // The 'client' parameter is passed from index.js but interaction.client can also be used.
-        // For consistency, we can pass it to handlers if they need it, or they can use interaction.client.
+    const countOption = interaction.options.getInteger('count');
+    if (countOption <= 0) {
+        await interaction.editReply("Please provide a positive number of messages to remember.");
+        return;
+    }
 
-        switch (commandName) {
-            case "toggle_chatbot":
-                await handleToggleChatbot(interaction, sharedStates);
-                break;
-            case "toggle_free_chat":
-                await handleToggleFreeChat(interaction, sharedStates);
-                break;
-            case "reset_chat":
-                await handleResetChat(interaction);
-                break;
-            case "clear":
-                await handleClear(interaction);
-                break;
-            default:
-                console.log(`[interactionCreate] Unhandled command: ${commandName}`);
-                await interaction.reply({ content: "Sorry, I don't know how to handle that command.", ephemeral: true });
+    const actualFetchCount = Math.min(countOption, MAX_FETCH_LIMIT);
+
+    try {
+        const fetchedMessages = await interaction.channel.messages.fetch({ limit: actualFetchCount });
+
+        if (fetchedMessages.size === 0) {
+            await interaction.editReply("No messages found to remember in this channel.");
+            return;
         }
-    },
-};
+
+        // Messages are fetched newest first, reverse to process oldest first for chronological saving
+        const sortedMessages = Array.from(fetchedMessages.values()).reverse();
+
+        let savedCount = 0;
+        let attemptedCount = 0;
+
+        for (const message of sortedMessages) {
+            // Skip messages with no actual content (e.g. only embeds from bots, or empty messages)
+            // You might want to adjust this filter based on your needs (e.g. message.author.bot)
+            if ((!message.content || message.content.trim() === "") && message.embeds.length === 0 && message.attachments.size === 0) {
+                continue;
+            }
+            attemptedCount++;
+
+            const result = await databaseService.addChatMessage(message.channelId, message.author.id, message.content, message.id, message.createdAt);
+            if (result) { // addChatMessage returns the new entry or null for duplicates/errors
+                savedCount++;
+            }
+        }
+
+        geminiService.resetChatSession(interaction.channelId);
+
+        let replyMessage = `Fetched ${fetchedMessages.size} message(s). `;
+        if (countOption > MAX_FETCH_LIMIT) {
+            replyMessage += `(You requested ${countOption}, but I can fetch a maximum of ${MAX_FETCH_LIMIT} at a time). `;
+        }
+        replyMessage += `Attempted to save ${attemptedCount} non-empty message(s), successfully saved ${savedCount} new message(s) to history. My memory for this channel has been refreshed.`;
+
+        await interaction.editReply(replyMessage);
+
+    } catch (error) {
+        console.error('Error processing /remember command:', error);
+        await interaction.editReply('Sorry, I encountered an error while trying to remember messages.');
+    }
+}

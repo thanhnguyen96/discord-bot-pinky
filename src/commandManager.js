@@ -1,4 +1,4 @@
-const { REST, Routes, PermissionsBitField } = require("discord.js");
+const { REST, Routes, PermissionsBitField, ApplicationCommandOptionType } = require("discord.js");
 const config = require('./config');
 
 const commands = [
@@ -19,6 +19,18 @@ const commands = [
         description: "Clear up to 100 messages in the current channel (requires permissions).",
         default_member_permissions: String(PermissionsBitField.Flags.ManageMessages),
     },
+    {
+        name: "remember",
+        description: "Fetches recent messages and saves them to the bot's memory for this channel.",
+        options: [
+            {
+                name: "count",
+                description: "Number of recent messages to remember (max 100).",
+                type: ApplicationCommandOptionType.Integer, // Type 4 for INTEGER
+                required: true,
+            },
+        ],
+    }
 ];
 
 const rest = new REST({ version: "10" }).setToken(config.BOT_TOKEN);
