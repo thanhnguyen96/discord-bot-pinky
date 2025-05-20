@@ -48,6 +48,12 @@ async function loadChannelSettings() {
     return prisma.channelSettings.findMany();
 }
 
+async function getChannelSetting(channelId) {
+    return prisma.channelSettings.findUnique({
+        where: { channelId: channelId },
+    });
+}
+
 async function upsertChannelSetting(channelId, settingsData) {
     return prisma.channelSettings.upsert({
         where: { channelId: channelId },
@@ -61,5 +67,6 @@ module.exports = {
     getChatHistory,
     clearChatHistory,
     loadChannelSettings,
+    getChannelSetting,
     upsertChannelSetting,
 };

@@ -1,7 +1,6 @@
 const { PermissionsBitField } = require("discord.js");
 const databaseService = require('../databaseService');
 const geminiService = require('../geminiService'); // For resetChatSession
-const prisma = require('../prismaClient'); // For direct prisma access if needed
 
 const MAX_FETCH_LIMIT = 100;
 
@@ -49,7 +48,7 @@ async function handleToggleChatbot(interaction, sharedStates) {
         isNowChatbotEnabled = false;
     }
     try {
-        const currentDbSettings = await prisma.channelSettings.findUnique({ where: { channelId } });
+        const currentDbSettings = await databaseService.getChannelSetting(channelId);
         const newSettings = { ...(currentDbSettings?.settings || {}), isChatbotEnabled: isNowChatbotEnabled };
 
         await databaseService.upsertChannelSetting(channelId, newSettings);
@@ -73,7 +72,7 @@ async function handleToggleFreeChat(interaction, sharedStates) {
 
     try {
         // Fetch current settings to merge, or simplify if only isFreeChat is stored
-        const currentDbSettings = await prisma.channelSettings.findUnique({ where: { channelId } });
+        const currentDbSettings = await databaseService.getChannelSetting(channelId);
         const newSettings = { ...(currentDbSettings?.settings || {}), isFreeChat: isNowFreeChat };
 
         await databaseService.upsertChannelSetting(channelId, newSettings);
@@ -137,22 +136,19 @@ async function handleRemember(interaction) {
             return;
         }
 
-        // Messages are fetched newest first, reverse to process oldest first for chronological saving
         const sortedMessages = Array.from(fetchedMessages.values()).reverse();
 
         let savedCount = 0;
         let attemptedCount = 0;
 
         for (const message of sortedMessages) {
-            // Skip messages with no actual content (e.g. only embeds from bots, or empty messages)
-            // You might want to adjust this filter based on your needs (e.g. message.author.bot)
             if ((!message.content || message.content.trim() === "") && message.embeds.length === 0 && message.attachments.size === 0) {
                 continue;
             }
             attemptedCount++;
 
             const result = await databaseService.addChatMessage(message.channelId, message.author.id, message.content, message.id, message.createdAt);
-            if (result) { // addChatMessage returns the new entry or null for duplicates/errors
+            if (result) { 
                 savedCount++;
             }
         }
