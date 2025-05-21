@@ -7,7 +7,7 @@ const commands = [
         description: "Toggle the chatbot for the current channel (responds on mention or if free_chat is also on).",
     },
     {
-        name: "reset_chat",
+        name: "forget",
         description: "Resets the chatbot's conversation history for this channel.",
     },
     {

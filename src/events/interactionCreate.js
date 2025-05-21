@@ -20,8 +20,8 @@ module.exports = {
             case "toggle_free_chat":
                 await handleToggleFreeChat(interaction, sharedStates);
                 break;
-            case "reset_chat":
-                await handleResetChat(interaction);
+            case "forget":
+                await handleForget(interaction);
                 break;
             case "remember":
                 await handleRemember(interaction);
@@ -86,7 +86,7 @@ async function handleToggleFreeChat(interaction, sharedStates) {
     }
 }
 
-async function handleResetChat(interaction) {
+async function handleForget(interaction) {
     geminiService.resetChatSession(interaction.channelId);
     await databaseService.clearChatHistory(interaction.channelId);
     console.log(`[${interaction.channelId}] Cleared DB history and active session on reset command.`);
