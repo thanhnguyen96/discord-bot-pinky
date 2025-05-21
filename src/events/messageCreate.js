@@ -30,17 +30,35 @@ module.exports = {
                 await message.channel.sendTyping();
 
                 const geminiFormattedPrompt = `${message.author.id}|${prompt}`;
-                const geminiResponse = await geminiService.getGeminiChatResponse(message.channel.id, geminiFormattedPrompt, message.author.id, client.user.id);
+                const originalGeminiResponse = await geminiService.getGeminiChatResponse(message.channel.id, geminiFormattedPrompt, message.author.id, client.user.id);
 
-                if (geminiResponse) {
+                let responseToSend = originalGeminiResponse;
+                let userMessageReacted = false;
+                const reactPattern = /^<react:([^>]+)>/;
+                if (originalGeminiResponse) {
+                    const reactMatch = originalGeminiResponse.match(reactPattern);
+                    if (reactMatch) {
+                        const emojiToReact = reactMatch[1];
+                        try {
+                            await message.react(emojiToReact);
+                            console.log(`[${message.channel.id}] Reacted to user message ${message.id} with ${emojiToReact}`);
+                            userMessageReacted = true;
+                        } catch (reactError) {
+                            console.error(`[${message.channel.id}] Failed to react to user message ${message.id} with ${emojiToReact}:`, reactError);
+                        }
+                        responseToSend = originalGeminiResponse.replace(reactPattern, '').trim();
+                    }
+                }
+
+                if (responseToSend) {
                     let sentMessageForDBLogging;
                     const MAX_LENGTH = 2000;
-                    if (geminiResponse.length <= MAX_LENGTH) {
-                        sentMessageForDBLogging = await message.reply(geminiResponse);
+                    if (responseToSend.length <= MAX_LENGTH) {
+                        sentMessageForDBLogging = await message.reply(responseToSend);
                     } else {
                         const messageChunks = [];
-                        for (let i = 0; i < geminiResponse.length; i += MAX_LENGTH) {
-                            messageChunks.push(geminiResponse.substring(i, i + MAX_LENGTH));
+                        for (let i = 0; i < responseToSend.length; i += MAX_LENGTH) {
+                            messageChunks.push(responseToSend.substring(i, i + MAX_LENGTH));
                         }
                         for (let i = 0; i < messageChunks.length; i++) {
                             const chunk = messageChunks[i];
@@ -51,10 +69,10 @@ module.exports = {
                         }
                     }
                     if (sentMessageForDBLogging) {
-                        await databaseService.addChatMessage(message.channel.id, client.user.id, geminiResponse, sentMessageForDBLogging.id, sentMessageForDBLogging.createdAt);
+                        await databaseService.addChatMessage(message.channel.id, client.user.id, responseToSend, sentMessageForDBLogging.id, sentMessageForDBLogging.createdAt);
                     } else {
                         console.warn(`[${message.channel.id}] Could not get a sent message reference for DB logging of bot response. Logging with synthetic ID and current time.`);
-                        await databaseService.addChatMessage(message.channel.id, client.user.id, geminiResponse, `synthetic_bot_${Date.now()}`, new Date());
+                        await databaseService.addChatMessage(message.channel.id, client.user.id, responseToSend, `synthetic_bot_${Date.now()}`, new Date());
                     }
                 } else {
                     await message.reply("I received an empty or no response from the AI. Please try again.");
