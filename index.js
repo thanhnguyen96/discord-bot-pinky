@@ -1,5 +1,6 @@
 // Require the necessary discord.js classes
 const { Client, GatewayIntentBits, Partials } = require("discord.js");
+const { Player } = require("discord-player");
 const fs = require('node:fs');
 const path = require('node:path');
 const prisma = require('./src/prismaClient'); // For shutdown
@@ -9,6 +10,7 @@ const config = require('./src/config'); // Loads .env and validates
 const sharedStates = {
     chatbotEnabledChannels: new Set(),
     freeChatChannels: new Set(),
+    player: null,
 };
 
 // Create a new Client instance with necessary intents
@@ -16,11 +18,15 @@ const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.MessageContent, // Required to read message content
         GatewayIntentBits.GuildMembers, // If you need member information
     ],
     partials: [Partials.Message, Partials.Channel, Partials.Reaction] // Useful for events on older messages
 });
+
+const player = new Player(client);
+sharedStates.player = player;
 
 // Load event handlers
 const eventsPath = path.join(__dirname, 'src', 'events');

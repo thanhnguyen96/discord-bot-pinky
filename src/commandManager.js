@@ -30,6 +30,18 @@ const commands = [
                 required: true,
             },
         ],
+    },
+    {
+        name: "play",
+        description: "Plays audio from a YouTube URL in your voice channel.",
+        options: [
+            {
+                name: "query",
+                description: "The Song Name or YouTube URL of the video/playlist to play.",
+                type: ApplicationCommandOptionType.String,
+                required: true,
+            },
+        ],
     }
 ];
 
