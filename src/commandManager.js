@@ -42,7 +42,19 @@ const commands = [
                 required: true,
             },
         ],
-    }
+    },
+    {
+        name: "stop",
+        description: "Stops the music, clears the queue, and disconnects the bot.",
+    },
+    {
+        name: "skip",
+        description: "Skips the current song.",
+    },
+    {
+        name: "pause",
+        description: "Pauses or resumes the current song.",
+    },
 ];
 
 const rest = new REST({ version: "10" }).setToken(config.BOT_TOKEN);
