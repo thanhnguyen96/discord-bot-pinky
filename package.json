@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@google/genai": "^0.14.1",
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.8.2",
@@ -18,9 +19,7 @@
     "discord-player-youtubei": "^1.4.6",
     "discord.js": "^14.19.3",
     "dotenv": "^16.5.0",
-    "node-fetch": "^3.3.2"
-  },
-  "devDependencies": {
+    "node-fetch": "^3.3.2",
     "prisma": "^6.8.2"
   }
 }

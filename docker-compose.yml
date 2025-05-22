@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pinky_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy # Waits for the DB to be ready before starting the app
+    env_file:
+      - .env # Loads environment variables from .env file
+    environment:
+      # Ensure DATABASE_URL in your .env file points to the 'db' service
+      # Example: DATABASE_URL="postgresql://your_user:your_password@db:5432/your_database?schema=public"
+      NODE_ENV: production
+    volumes:
+      # Mounts your current directory to the app's working directory for development
+      # For production, you might remove this line if the code is fully baked into the image
+      - .:/usr/src/app
+      # Prevents host node_modules from overwriting container's node_modules
+      - /usr/src/app/node_modules
+    networks:
+      - app-network
+
+  db:
+    image: postgres:latest # Using a specific version of PostgreSQL
+    container_name: pinky_postgres_db
+    restart: unless-stopped
+    environment:
+      # These will be loaded from your .env file
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persistent storage for database
+    ports:
+      # Expose port 5432 if you need to connect to the DB from your host machine (e.g., for debugging)
+      # Remove if not needed for security.
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
