@@ -55,6 +55,11 @@ const commands = [
         name: "pause",
         description: "Pauses or resumes the current song.",
     },
+    {
+        name: "music_menu",
+        description: "Displays an interactive music menu.",
+    },
+
 ];
 
 const rest = new REST({ version: "10" }).setToken(config.BOT_TOKEN);
