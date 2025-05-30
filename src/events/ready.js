@@ -1,6 +1,7 @@
 const databaseService = require("../databaseService");
 const { registerSlashCommands } = require("../commandManager");
 const { YoutubeiExtractor } = require("discord-player-youtubei");
+const playerEventHandler = require('./playerHandler'); // Import the new handler
 
 module.exports = {
   name: 'ready',
@@ -16,6 +17,8 @@ module.exports = {
       } catch (error) {
         console.error("Error registering YouTubei extractor:", error);
       }
+      // Initialize player event handlers
+      playerEventHandler.initialize(actualSharedStates.player, actualSharedStates, readyClient);
     } else {
       console.warn(
         "Player instance not found in sharedStates during ready event. Music playback might not work."

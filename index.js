@@ -11,6 +11,7 @@ const sharedStates = {
     chatbotEnabledChannels: new Set(),
     freeChatChannels: new Set(),
     player: null,
+    activeMusicMenus: new Map(), // guildId -> { menuMessage: Message, collector: InteractionCollector }
 };
 
 // Create a new Client instance with necessary intents
